@@ -2,11 +2,10 @@ package catalog.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
-
 @Entity
 @Table(name = "services")
 @Data
-public class service {
+public class MedicalService {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -25,3 +24,4 @@ public class service {
     private Boolean isActive;
     
 }
+
