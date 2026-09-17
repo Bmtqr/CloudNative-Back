@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.http.ResponseEntity;
 
 @RestController 
-@RequestMapping ("/api/bff/catalog")
+@RequestMapping ("/api/catalog")
 public class catalogController {
     @Autowired 
     private catalogClient catalogClient;

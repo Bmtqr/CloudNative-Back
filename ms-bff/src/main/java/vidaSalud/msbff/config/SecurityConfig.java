@@ -2,6 +2,7 @@ package vidaSalud.msbff.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -21,12 +22,15 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/bff/admin/**").hasRole("Admin") /***Pendiente */
-                .requestMatchers("/api/bff/appointments/**").hasAnyRole( "Recepcionista", "Paciente")
-                .requestMatchers("/api/bff/catalog/**").hasAnyRole("Admin")
-                .requestMatchers("/api/bff/notify/**").hasAnyRole( "Recepcionista","Paciente")/***Pendiente */
-                .requestMatchers("/api/bff/report/**").hasAnyRole( "Admin")
-                .requestMatchers("/api/bff/audit/**").hasAnyRole( "Auditor")
+                .requestMatchers("/api/admin/**").hasRole("Admin") 
+                .requestMatchers(HttpMethod.GET,"/api/appointments/**").hasAnyRole("Admin","Recepcionista","Paciente")
+                .requestMatchers(HttpMethod.POST,"/api/appointments/**").hasAnyRole("Recepcionista","Paciente")
+                .requestMatchers(HttpMethod.PUT,"/api/appointments/**").hasAnyRole("Admin","Recepcionista")
+                .requestMatchers(HttpMethod.GET,"/api/catalog").hasAnyRole("Admin","Recepcionista")
+                .requestMatchers("/api/catalog/**").hasAnyRole("Admin")
+                .requestMatchers("/api/notify/**").hasAnyRole( "Recepcionista","Paciente")
+                .requestMatchers("/api/report/**").hasAnyRole( "Admin")
+                .requestMatchers(HttpMethod.GET,"/api/audit/**").hasAnyRole("Admin", "Auditor")
                 .anyRequest().authenticated()
             )
             .oauth2ResourceServer(oauth2 -> oauth2

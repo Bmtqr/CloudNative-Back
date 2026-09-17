@@ -11,19 +11,19 @@ import org.springframework.web.bind.annotation.RequestBody;
 @FeignClient (name = "appointments-client", url = "${appointments.url}")
 public interface appointmentClient {
 
-    @GetMapping ("api/appointments") 
+    @GetMapping ("/api/appointments") 
     Object getAllAppointments();
 
-    @GetMapping ("api/appointments/{id}")
+    @GetMapping ("/api/appointments/{id}")
     Object getAppointmentById(@PathVariable ("id") Long id);
 
-    @PostMapping ("api/appointments")
+    @PostMapping ("/api/appointments")
     Object createAppointment(@RequestBody Object request);
 
-    @PutMapping ("api/appointments/{id}/status") /*Pendiente */
+    @PutMapping ("/api/appointments/{id}/status") /*Pendiente */
     Object updateAppointment(@PathVariable ("id") Long id, @RequestBody Object request);
 
-    @DeleteMapping ("api/appointments/{id}")
+    @DeleteMapping ("/api/appointments/{id}")
     void deleteAppointment(@PathVariable ("id") Long id);
 
 }
