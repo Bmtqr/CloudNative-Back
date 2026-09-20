@@ -2,6 +2,7 @@ package appointments.service;
 import appointments.model.Appointment;
 import appointments.model.AppointmentStatus;
 import appointments.repository.AppointmentRepository;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -33,15 +34,18 @@ public class AppointmentService {
         this.catalogClient = RestClient.builder().baseUrl(catalogUrl).build();
     }
 
+    @Transactional
     public Appointment createAppointment(Appointment appointment) {
         appointment.setStatus(AppointmentStatus.SOLICITADA);
         return repository.save(appointment);
     }
 
+    @Transactional(readOnly = true)
     public Optional<Appointment> getById(Long id) {
         return repository.findById(id);
     }
 
+    @Transactional(readOnly = true)
     public List<Appointment> getAll(AppointmentStatus status, LocalDate from, LocalDate to) {
         if (status != null && from != null && to != null) {
             return repository.findByStatusAndAppointmentDateBetween(status, from, to);
@@ -51,11 +55,11 @@ public class AppointmentService {
         return repository.findAll();
     }
 
+    @Transactional
     public Appointment updateStatus(Long id, AppointmentStatus newStatus, String username) {
         Appointment appointment = repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Atención no encontrada con ID: " + id));
 
-        // No se puede pasar a EN_ATENCIÓN sin CONFIRMAR
         if (newStatus == AppointmentStatus.EN_ATENCION && appointment.getStatus() != AppointmentStatus.CONFIRMADA) {
             throw new IllegalStateException("No se puede pasar al estado EN_ATENCIÓN si la atención no fue CONFIRMADA previamente.");
         }
@@ -101,6 +105,7 @@ public class AppointmentService {
     }
 
 
+    @Transactional
     public Appointment updateAppointment(Long id, Appointment details) {
         Appointment existing = repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Atención no encontrada con ID: " + id));
@@ -130,6 +135,7 @@ public class AppointmentService {
         return repository.save(existing);
     }
 
+    @Transactional
     public void deleteById(Long id) {
         if (!repository.existsById(id)) {
             throw new RuntimeException("Atención no encontrada con ID: " + id);

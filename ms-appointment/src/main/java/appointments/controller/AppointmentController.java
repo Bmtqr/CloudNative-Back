@@ -11,7 +11,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -23,14 +22,12 @@ public class AppointmentController {
 
     private final AppointmentService service;
 
-    // POST /api/appointments
     @PostMapping
     public ResponseEntity<Appointment> create(@RequestBody Appointment appointment) {
         Appointment created = service.createAppointment(appointment);
         return new ResponseEntity<>(created, HttpStatus.CREATED);
     }
 
-    // GET /api/appointments/{id}
     @GetMapping("/{id}")
     public ResponseEntity<Appointment> getById(@PathVariable Long id) {
         return service.getById(id)
@@ -47,7 +44,6 @@ public class AppointmentController {
         return ResponseEntity.ok(service.getAll(status, from, to));
     }
 
-    // PUT /api/appointments/{id}/status
     @PutMapping("/{id}/status")
     public ResponseEntity<?> updateStatus(
             @PathVariable Long id, 
@@ -55,11 +51,11 @@ public class AppointmentController {
             java.security.Principal principal) {
 
         String statusStr = body.get("status");
-        if (statusStr == null || statusStr.trim().isEmpty()) {
+        if (statusStr == null || statusStr.isBlank()) {
             return ResponseEntity.badRequest().body("El campo 'status' es obligatorio.");
         }
 
-        // Si hay token toma el usuario; si estás probando en local sin token usa "ANONYMOUS"
+        // Si hay token toma el usuario; en local usa ANONYMOUS
         String username = (principal != null) ? principal.getName() : body.getOrDefault("user", "ANONYMOUS");
         try {
             AppointmentStatus newStatus = AppointmentStatus.valueOf(statusStr.toUpperCase());

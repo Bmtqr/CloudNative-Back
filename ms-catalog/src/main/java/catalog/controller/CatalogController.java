@@ -16,20 +16,17 @@ public class CatalogController {
 
     private final CatalogService catalogService;
 
-    // GET /api/catalog/services
     @GetMapping
     public ResponseEntity<List<MedicalService>> getServices() {
         return ResponseEntity.ok(catalogService.getAllServices());
     }
 
-    // POST /api/catalog/services
     @PostMapping
     public ResponseEntity<MedicalService> createService(@RequestBody MedicalService medicalService) {
         MedicalService created = catalogService.createService(medicalService);
         return new ResponseEntity<>(created, HttpStatus.CREATED);
     }
 
-    // PUT /api/catalog/services/{id}
     @PutMapping("/{id}")
     public ResponseEntity<?> updateService(
             @PathVariable Long id, 
@@ -46,7 +43,6 @@ public class CatalogController {
         }
     }
 
-    // PUT /api/catalog/services/{id}/decrease-quota
     @PutMapping("/{id}/decrease-quota")
     public ResponseEntity<?> decreaseQuota(@PathVariable Long id) {
         try {

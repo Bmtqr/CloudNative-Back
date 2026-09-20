@@ -23,7 +23,7 @@ public class AppointmentAdminController {
             Appointment updated = service.updateAppointment(id, details);
             return ResponseEntity.ok(updated);
         } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+            return ResponseEntity.notFound().build();
         }
     }
 

@@ -72,9 +72,17 @@ public class CatalogAdminController {
 
     @PostMapping("/quotas")
     public ResponseEntity<?> createQuota(@RequestBody Map<String, Object> payload) {
-        Long serviceId = Long.valueOf(payload.get("serviceId").toString());
-        Long boxId = Long.valueOf(payload.get("boxId").toString());
-        Integer availableQuotas = Integer.valueOf(payload.get("availableQuotas").toString());
+        Object serviceIdObj = payload.get("serviceId");
+        Object boxIdObj = payload.get("boxId");
+        Object quotasObj = payload.get("availableQuotas");
+
+        if (serviceIdObj == null || boxIdObj == null || quotasObj == null) {
+            return ResponseEntity.badRequest().body("Los campos 'serviceId', 'boxId' y 'availableQuotas' son obligatorios.");
+        }
+
+        Long serviceId = Long.valueOf(serviceIdObj.toString());
+        Long boxId = Long.valueOf(boxIdObj.toString());
+        Integer availableQuotas = Integer.valueOf(quotasObj.toString());
 
         MedicalService service = medicalServiceRepository.findById(serviceId)
                 .orElseThrow(() -> new RuntimeException("Servicio no encontrado con ID: " + serviceId));
@@ -83,14 +91,13 @@ public class CatalogAdminController {
                 .orElseThrow(() -> new RuntimeException("Box no encontrado con ID: " + boxId));
 
         ServiceQuota quota = quotaRepository.findByMedicalServiceId(serviceId)
-                .orElse(new ServiceQuota());
+                .orElseGet(ServiceQuota::new);
 
         quota.setMedicalService(service);
         quota.setBox(box);
         quota.setAvailableQuotas(availableQuotas);
 
-        ServiceQuota savedQuota = quotaRepository.save(quota);
-        return new ResponseEntity<>(savedQuota, HttpStatus.CREATED);
+        return ResponseEntity.status(HttpStatus.CREATED).body(quotaRepository.save(quota));
     }
 
     @GetMapping("/quotas")

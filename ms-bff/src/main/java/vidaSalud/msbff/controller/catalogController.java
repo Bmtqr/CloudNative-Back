@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 @RestController 
 @RequestMapping ("/api/catalog")
 public class catalogController {
+    
     @Autowired 
     private catalogClient catalogClient;
 
