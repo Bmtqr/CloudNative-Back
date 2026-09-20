@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="styles.css">
+<title>Laboratorio MSAL 2.0 — login sin backend</title>
+
+</head>
+
+<body>
+<div class="contenedor">
+
+  <h1>Laboratorio MSAL 2.0</h1>
+  <p class="bajada">
+    Inicia sesión con Microsoft Entra ID, obtén un access token y úsalo contra
+    Microsoft Graph. Todo ocurre en el navegador: esta página no tiene servidor propio.
+  </p>
+
+  <div class="columnas">
+
+    <!-- ============ COLUMNA IZQUIERDA: acciones ============ -->
+    <div class="panel">
+      <ol class="pasos">
+        <li>
+          <strong>Iniciar sesión</strong>
+          <p>Abre la ventana de Microsoft y devuelve una cuenta.</p>
+          <button id="btnLogin">Iniciar sesión</button>
+        </li>
+        <li>
+          <strong>Pedir el token</strong>
+          <p>MSAL lo entrega desde su caché o lo renueva si venció.</p>
+          <button id="btnToken" class="secundario" disabled>Obtener token</button>
+        </li>
+        <li>
+          <strong>Llamar a Graph</strong>
+          <p>Envía el token en el header Authorization.</p>
+          <button id="btnGraph" class="secundario" disabled>Llamar a /me</button>
+        </li>
+        <li>
+          <strong>Cerrar sesión</strong>
+          <p>Limpia la caché de MSAL en esta pestaña.</p>
+          <button id="btnLogout" class="secundario" disabled>Cerrar sesión</button>
+        </li>
+      </ol>
+    </div>
+
+    <!-- ============ COLUMNA DERECHA: resultados ============ -->
+    <div class="panel">
+      <div id="estado" class="estado">Sin sesión iniciada.</div>
+
+      <h2>Claims del token</h2>
+      <pre id="claims">—</pre>
+
+      <h2>Access token</h2>
+      <pre id="token">—</pre>
+
+      <h2>Respuesta de Microsoft Graph</h2>
+      <pre id="graph">—</pre>
+
+      <p class="aviso">
+        Los claims se muestran decodificando el token en el navegador.
+        Decodificar no es validar: cualquiera puede fabricar un JWT con los
+        claims que quiera. La validación de firma siempre ocurre en el servidor
+        que recibe el token, en este caso Graph.
+      </p>
+    </div>
+
+  </div>
+</div>
+
+<!-- Libreria MSAL 2.0 para navegador, cargada desde el CDN de Microsoft -->
+<script src="https://alcdn.msauth.net/browser/2.35.0/js/msal-browser.min.js"></script>
+<script src="script_nuevo.js"></script>
+</body>
+</html>

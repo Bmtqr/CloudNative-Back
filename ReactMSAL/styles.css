@@ -1,0 +1,153 @@
+:root {
+  --tinta: #16222c;
+  --suave: #5b6b76;
+  --linea: #dde3e6;
+  --papel: #ffffff;
+  --fondo: #eef1f2;
+  --enlace: #1f5c8b;
+  --ok: #2e6e4e;
+  --error: #a33a2c;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 2rem 1.25rem 4rem;
+  background: var(--fondo);
+  color: var(--tinta);
+  font-family: "Segoe UI", system-ui, sans-serif;
+  line-height: 1.55;
+}
+
+.contenedor {
+  max-width: 68rem;
+  margin: 0 auto;
+}
+
+h1 {
+  font-size: 1.6rem;
+  font-weight: 600;
+  margin: 0 0 0.3rem;
+  letter-spacing: -0.01em;
+}
+
+.bajada {
+  color: var(--suave);
+  max-width: 46rem;
+  margin: 0 0 2rem;
+}
+
+.columnas {
+  display: grid;
+  grid-template-columns: 22rem 1fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+@media (max-width: 800px) {
+  .columnas {
+    grid-template-columns: 1fr;
+  }
+}
+
+.panel {
+  background: var(--papel);
+  border: 1px solid var(--linea);
+  border-radius: 4px;
+  padding: 1.25rem;
+}
+
+/* Los pasos SI son una secuencia real, por eso van numerados */
+ol.pasos {
+  margin: 0;
+  padding-left: 1.2rem;
+}
+ol.pasos li {
+  margin-bottom: 1rem;
+}
+ol.pasos li:last-child {
+  margin-bottom: 0;
+}
+ol.pasos p {
+  margin: 0.2rem 0 0.5rem;
+  color: var(--suave);
+  font-size: 0.9rem;
+}
+
+button {
+  font: inherit;
+  font-size: 0.9rem;
+  padding: 0.45rem 0.9rem;
+  border: 1px solid var(--enlace);
+  background: var(--enlace);
+  color: #fff;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+button.secundario {
+  background: transparent;
+  color: var(--enlace);
+}
+button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+button:focus-visible {
+  outline: 2px solid var(--tinta);
+  outline-offset: 2px;
+}
+
+.estado {
+  font-size: 0.85rem;
+  padding: 0.5rem 0.7rem;
+  border-left: 3px solid var(--linea);
+  background: #f6f8f9;
+  margin-bottom: 1rem;
+  color: var(--suave);
+}
+.estado.ok {
+  border-color: var(--ok);
+  color: var(--ok);
+}
+.estado.error {
+  border-color: var(--error);
+  color: var(--error);
+}
+
+h2 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin: 1.5rem 0 0.4rem;
+  padding-bottom: 0.3rem;
+  border-bottom: 1px solid var(--linea);
+}
+h2:first-of-type {
+  margin-top: 0;
+}
+
+pre {
+  font-family: "Cascadia Mono", Consolas, monospace;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  background: #f6f8f9;
+  border: 1px solid var(--linea);
+  padding: 0.8rem;
+  margin: 0;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
+  max-height: 18rem;
+  overflow-y: auto;
+}
+
+.aviso {
+  margin-top: 1.5rem;
+  font-size: 0.85rem;
+  color: var(--suave);
+  border-top: 1px solid var(--linea);
+  padding-top: 0.8rem;
+}
