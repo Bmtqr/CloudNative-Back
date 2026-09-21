@@ -6,6 +6,7 @@ import catalog.repository.MedicalServiceRepository;
 import catalog.repository.ServiceQuotaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -17,21 +18,18 @@ public class CatalogService {
     private final MedicalServiceRepository serviceRepository;
     private final ServiceQuotaRepository quotaRepository;
 
-    // Obtener todas las prestaciones
+    @Transactional(readOnly = true)
     public List<MedicalService> getAllServices() {
         return serviceRepository.findAll();
     }
-
-    // Crear una prestación
+    @Transactional
     public MedicalService createService(MedicalService medicalService) {
-        // Por defecto, al crear, la dejamos activa
         medicalService.setIsActive(true);
         return serviceRepository.save(medicalService);
     }
 
-    // Actualizar precio y cupos (Requerimiento específico del PDF)
+    @Transactional
     public MedicalService updateServiceAndQuota(Long id, Double price, Integer additionalQuotas) {
-        // 1. Actualizar el precio de la prestación
         MedicalService medicalService = serviceRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Prestación no encontrada"));
         
@@ -40,7 +38,6 @@ public class CatalogService {
             serviceRepository.save(medicalService);
         }
 
-        // 2. Actualizar los cupos asociados (si se envían en la petición)
         if (additionalQuotas != null) {
             Optional<ServiceQuota> quotaOpt = quotaRepository.findByMedicalServiceId(id);
             if (quotaOpt.isPresent()) {
@@ -53,9 +50,9 @@ public class CatalogService {
         return medicalService;
     }
 
-    // Método para disminuir un cupo (será llamado por ms-appointments)
-    public void decreaseQuota(Long medicalServiceId) {
-        ServiceQuota quota = quotaRepository.findByMedicalServiceId(medicalServiceId)
+    @Transactional
+    public Long decreaseQuota(Long serviceId) {
+        ServiceQuota quota = quotaRepository.findByMedicalServiceId(serviceId)
                 .orElseThrow(() -> new RuntimeException("Cupos no encontrados para esta prestación"));
 
         if (quota.getAvailableQuotas() <= 0) {
@@ -64,5 +61,7 @@ public class CatalogService {
 
         quota.setAvailableQuotas(quota.getAvailableQuotas() - 1);
         quotaRepository.save(quota);
+
+        return (quota.getBox() != null) ? quota.getBox().getId() : null;
     }
 }

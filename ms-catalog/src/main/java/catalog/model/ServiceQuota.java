@@ -15,6 +15,10 @@ public class ServiceQuota {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    // Cantidad de cupos disponibles
+    @Column(name = "available_quotas")
+    private Integer availableQuotas;
+
     // Relación con la prestación (MedicalService)
     @ManyToOne
     @JoinColumn(name = "service_id")
@@ -24,8 +28,4 @@ public class ServiceQuota {
     @ManyToOne
     @JoinColumn(name = "box_id")
     private Box box;
-
-    // Cantidad de cupos disponibles
-    @Column(name = "available_quotas")
-    private Integer availableQuotas;
 }

@@ -3,8 +3,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
-import java.time.LocalDateTime;
-import jakarta.persistence.*;
+import java.time.LocalDate;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -20,6 +19,12 @@ public class Appointment {
     @Column(name = "PATIENT_ID", nullable = false)
     private String patientId;
 
+    @Column(name = "PATIENT_EMAIL")
+    private String patientEmail;
+
+    @Column(name = "CENTER_ID")
+    private String centerId;
+
     @Column(name = "SERVICE_ID", nullable = false)
     private Long serviceId;
 
@@ -27,18 +32,18 @@ public class Appointment {
     private Long boxId;
 
     @Column(name = "APPOINTMENT_DATE", nullable = false)
-    private LocalDateTime appointmentDate;
+    private LocalDate appointmentDate;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "STATUS", nullable = false)
     private AppointmentStatus status;
 
     @Column(name = "CREATED_AT")
-    private LocalDateTime createdAt;
+    private LocalDate createdAt;
 
     @PrePersist
     public void prePersist() {
-        this.createdAt = LocalDateTime.now();
+        this.createdAt = LocalDate.now();
         if (this.status == null) {
             this.status = AppointmentStatus.SOLICITADA;
         }
