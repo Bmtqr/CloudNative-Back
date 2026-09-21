@@ -5,28 +5,22 @@
 
 const msalConfig = {
   auth: {
-    // ID de la aplicacion registrada en Entra ID (portal Azure)
-    clientId: "TU_CLIENT_ID",
+    // Application (client) ID de tu registro de FRONTEND en Azure
+    clientId: "a4c9aac0-2590-4e9b-baab-31ac26dc6e47",
 
-    // "common" sirve para cualquier tenant.
-    // Para una app de un solo tenant usa el ID del tuyo:
-    // https://login.microsoftonline.com/TU_TENANT_ID
-    authority: "https://login.microsoftonline.com/common", //Se usa el id de la app
+    // Tu Tenant ID institucional
+    authority: "https://login.microsoftonline.com/03bb15ff-2ba9-4e00-8ebd-10c0986f5c28",
 
-    // Debe coincidir EXACTAMENTE con el Redirect URI registrado,
-    // incluido el puerto. Debe estar registrado como tipo SPA.
     redirectUri: window.location.origin
   },
   cache: {
-    // sessionStorage: el token se borra al cerrar la pestaña.
-    // localStorage lo mantiene entre pestañas, pero es mas expuesto.
     cacheLocation: "sessionStorage"
   }
 };
 
 // Permisos que pedimos. User.Read permite leer el perfil del usuario en Graph.
 // Si tuvieras tu propia API, aqui iria: ["api://TU_CLIENT_ID/tu.scope"]
-const peticion = { scopes: ["User.Read"] };
+const peticion = { scopes: ["api://e07cac17-7005-4a0b-87ff-45971efefb1f/.default"] };
 
 // OJO con el nombre: la libreria del CDN ocupa la variable global "msal",
 // asi que la instancia se llama distinto para no pisarla.
@@ -127,7 +121,7 @@ async function llamarGraph() {
   try {
     const token = await obtenerToken();
 
-    const respuesta = await fetch("https://graph.microsoft.com/v1.0/me", {
+    const respuesta = await fetch("https://mxw86gy6c3.execute-api.us-east-1.amazonaws.com/api/catalog/services", {
       headers: {
         // El esquema "Bearer" seguido del token es el estandar OAuth 2.0
         Authorization: "Bearer " + token
