@@ -1,0 +1,12 @@
+server:
+  port: 19090
+spring:
+  application:
+    name: gateway
+cloud:
+  gateway:
+    routes:
+      - id: ms-bff
+        uri: http://localhost:18080
+        predicates:
+          - Path=/api/**
