@@ -9,20 +9,23 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class MessagingConfig {
 
-    // RabbitMQ: Declaración de cola, exchange y binding
+    public static final String EXCHANGE = "cmd.direct";
+    public static final String QUEUE_EMAIL = "q.cmd.email";
+    public static final String ROUTING_KEY_EMAIL = "email.send";
+
     @Bean
     public Queue emailQueue() {
-        return QueueBuilder.durable("q.cmd.email").build();
+        return QueueBuilder.durable(QUEUE_EMAIL).build();
     }
 
     @Bean
     public DirectExchange directExchange() {
-        return new DirectExchange("exchange.direct");
+        return new DirectExchange(EXCHANGE);
     }
 
     @Bean
     public Binding bindingEmail(Queue emailQueue, DirectExchange directExchange) {
-        return BindingBuilder.bind(emailQueue).to(directExchange).with("rk.cmd.email");
+        return BindingBuilder.bind(emailQueue).to(directExchange).with(ROUTING_KEY_EMAIL);
     }
 
     // Serializador para que RabbitMQ mande JSON legible

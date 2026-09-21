@@ -1,4 +1,6 @@
 package appointments.service;
+
+import appointments.config.MessagingConfig;
 import appointments.model.Appointment;
 import appointments.model.AppointmentStatus;
 import appointments.repository.AppointmentRepository;
@@ -79,18 +81,18 @@ public class AppointmentService {
         appointment.setStatus(newStatus);
         Appointment saved = repository.save(appointment);
 
-        // Envia la notificacion si se confirma la atencion (rabbit)
+        // Envía la notificación si se confirma la atención (RabbitMQ alineado al caso VidaSalud)
         if (newStatus == AppointmentStatus.CONFIRMADA && saved.getPatientEmail() != null) {
             Map<String, Object> emailPayload = Map.of(
                 "to", saved.getPatientEmail(),
                 "appointmentId", saved.getId(),
                 "centerId", (saved.getCenterId() != null) ? saved.getCenterId() : "",
-                "date", saved.getAppointmentDate().toString()
+                "date", (saved.getAppointmentDate() != null) ? saved.getAppointmentDate().toString() : ""
             );
-            rabbitTemplate.convertAndSend("exchange.direct", "rk.cmd.email", emailPayload);
+            rabbitTemplate.convertAndSend(MessagingConfig.EXCHANGE, MessagingConfig.ROUTING_KEY_EMAIL, emailPayload);
         }
 
-        // Se envia el evento hacia kakfa
+        // Se envía el evento hacia Kafka
         Map<String, Object> kafkaPayload = Map.of(
             "eventId", UUID.randomUUID().toString(),
             "aggregateId", saved.getId().toString(),
@@ -104,34 +106,18 @@ public class AppointmentService {
         return saved;
     }
 
-
     @Transactional
     public Appointment updateAppointment(Long id, Appointment details) {
         Appointment existing = repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Atención no encontrada con ID: " + id));
 
-        if (details.getPatientId() != null) {
-            existing.setPatientId(details.getPatientId());
-        }
-        if (details.getPatientEmail() != null) {
-            existing.setPatientEmail(details.getPatientEmail());
-        }
-        if (details.getCenterId() != null) {
-            existing.setCenterId(details.getCenterId());
-        }
-        if (details.getServiceId() != null) {
-            existing.setServiceId(details.getServiceId());
-        }
-        if (details.getBoxId() != null) {
-            existing.setBoxId(details.getBoxId());
-        }
-        if (details.getAppointmentDate() != null) {
-            existing.setAppointmentDate(details.getAppointmentDate());
-        }
-        if (details.getStatus() != null) {
-            existing.setStatus(details.getStatus());
-        }
-
+        if (details.getPatientId() != null) existing.setPatientId(details.getPatientId());
+        if (details.getPatientEmail() != null) existing.setPatientEmail(details.getPatientEmail());
+        if (details.getCenterId() != null) existing.setCenterId(details.getCenterId());
+        if (details.getServiceId() != null) existing.setServiceId(details.getServiceId());
+        if (details.getBoxId() != null) existing.setBoxId(details.getBoxId());
+        if (details.getAppointmentDate() != null) existing.setAppointmentDate(details.getAppointmentDate());
+        
         return repository.save(existing);
     }
 
