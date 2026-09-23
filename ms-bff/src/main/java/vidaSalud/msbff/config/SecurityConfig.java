@@ -24,9 +24,9 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/admin/**").hasRole("Admin") 
                 .requestMatchers(HttpMethod.GET,"/api/appointments/**").hasAnyRole("Admin","Recepcionista","Paciente")
-                .requestMatchers(HttpMethod.POST,"/api/appointments/**").hasAnyRole("Recepcionista","Paciente")
+                .requestMatchers(HttpMethod.POST,"/api/appointments/**").hasAnyRole("Recepcionista","Paciente", "Admin")
                 .requestMatchers(HttpMethod.PUT,"/api/appointments/**").hasAnyRole("Admin","Recepcionista")
-                .requestMatchers(HttpMethod.GET,"/api/catalog").hasAnyRole("Admin","Recepcionista")
+                .requestMatchers(HttpMethod.GET,"/api/catalog/**").hasAnyRole("Admin","Recepcionista")
                 .requestMatchers("/api/catalog/**").hasAnyRole("Admin")
                 .requestMatchers("/api/notify/**").hasAnyRole( "Recepcionista","Paciente")
                 .requestMatchers("/api/report/**").hasAnyRole( "Admin")

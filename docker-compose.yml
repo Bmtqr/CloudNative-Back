@@ -1,94 +1,17 @@
 version: '3.8'
 
 networks:
-  vidasalud-local-net:
+  vidasalud-apps-net:
     driver: bridge
-
-volumes:
-  mysql_data:
-    driver: local
 
 services:
 
-
-  # MySQL
-  mysql:
-    image: mysql:8.0
-    container_name: local-mysql
-    restart: always
-    platform: linux/amd64
-    ports:
-      - "3307:3306"
-    environment:
-      - MYSQL_ALLOW_EMPTY_PASSWORD=yes
-    volumes:
-      - mysql_data:/var/lib/mysql
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
-    networks:
-      - vidasalud-local-net
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
-
-  # Mensajeria y Kafka
-  rabbitmq:
-    image: rabbitmq:3-management
-    container_name: local-rabbitmq
-    ports:
-      - "5672:5672"     # AMQP
-      - "15672:15672"   # Management UI (user/pass por defecto: guest/guest)
-    networks:
-      - vidasalud-local-net
-    healthcheck:
-      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 20s
-
-  zookeeper:
-    image: confluentinc/cp-zookeeper:7.4.0
-    container_name: local-zookeeper
-    ports:
-      - "2181:2181"
-    environment:
-      ZOOKEEPER_CLIENT_PORT: 2181
-      ZOOKEEPER_TICK_TIME: 2000
-    networks:
-      - vidasalud-local-net
-
-  kafka:
-    image: confluentinc/cp-kafka:7.4.0
-    container_name: local-kafka
-    depends_on:
-      - zookeeper
-    ports:
-      - "9092:9092"
-    environment:
-      KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
-      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-    networks:
-      - vidasalud-local-net
-    healthcheck:
-      test: ["CMD-SHELL", "kafka-topics --bootstrap-server localhost:9092 --list || exit 1"]
-      interval: 15s
-      timeout: 10s
-      retries: 5
-      start_period: 30s
-
-  # Microservicios
-  bff-svc:
+  ms-bff:
     build:
       context: ./ms-bff
       dockerfile: Dockerfile
     container_name: ms-bff
+    restart: always
     ports:
       - "18080:18080"
     environment:
@@ -98,114 +21,91 @@ services:
       - SERVICES_REPORT_URL=http://ms-report:8083
       - SERVICES_AUDIT_URL=http://ms-audit:8084
     depends_on:
-      ms-catalog:
-        condition: service_started
-      ms-appointments:
-        condition: service_started
+      - ms-catalog
+      - ms-appointments
     networks:
-      - vidasalud-local-net
+      - vidasalud-apps-net
 
   ms-catalog:
     build:
       context: ./ms-catalog
       dockerfile: Dockerfile
     container_name: ms-catalog
+    restart: always
     ports:
       - "8082:8082"
     environment:
       - SERVER_PORT=8082
-      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/bd_catalog?createDatabaseIfNotExist=true
+      - SPRING_DATASOURCE_URL=jdbc:mysql://172.31.70.67:3306/bd_catalog?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
       - SPRING_DATASOURCE_USERNAME=root
       - SPRING_DATASOURCE_PASSWORD=
-    depends_on:
-      mysql:
-        condition: service_healthy
     networks:
-      - vidasalud-local-net
+      - vidasalud-apps-net
 
   ms-appointments:
     build:
       context: ./ms-appointment
       dockerfile: Dockerfile
     container_name: ms-appointments
+    restart: always
     ports:
       - "8081:8081"
     environment:
       - SERVER_PORT=8081
-      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/bd_appointments?createDatabaseIfNotExist=true
+      - SPRING_DATASOURCE_URL=jdbc:mysql://172.31.70.67:3306/bd_appointments?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
       - SPRING_DATASOURCE_USERNAME=root
       - SPRING_DATASOURCE_PASSWORD=
-      - SPRING_RABBITMQ_HOST=rabbitmq
+      - SPRING_RABBITMQ_HOST=172.31.64.175
       - SPRING_RABBITMQ_PORT=5672
-      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=172.31.77.176:9092
       - SERVICES_CATALOG_URL=http://ms-catalog:8082
-    depends_on:
-      mysql:
-        condition: service_healthy
-      rabbitmq:
-        condition: service_healthy
-      kafka:
-        condition: service_healthy
     networks:
-      - vidasalud-local-net
+      - vidasalud-apps-net
 
   ms-notify:
     build:
       context: ./ms-notify
       dockerfile: Dockerfile
     container_name: ms-notify
-    # No requiere mapeo de puertos externos (solo consume colas)
+    restart: always
     environment:
       - SERVER_PORT=8085
-      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/bd_notify?createDatabaseIfNotExist=true
-      - SPRING_DATASOURCE_USERNAME=root
-      - SPRING_DATASOURCE_PASSWORD=
-      - SPRING_RABBITMQ_HOST=rabbitmq
+      - SPRING_RABBITMQ_HOST=172.31.64.175
       - SPRING_RABBITMQ_PORT=5672
-    depends_on:
-      rabbitmq:
-        condition: service_healthy
+      - SPRING_AUTOCONFIGURE_EXCLUDE=org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration,org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration,org.springframework.boot.hibernate.autoconfigure.HibernateJpaAutoConfiguration,org.springframework.boot.autoconfigure.data.jpa.JpaRepositoriesAutoConfiguration,org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration
     networks:
-      - vidasalud-local-net
+      - vidasalud-apps-net
 
   ms-report:
     build:
       context: ./ms-report
       dockerfile: Dockerfile
     container_name: ms-report
+    restart: always
     ports:
       - "8083:8083"
     environment:
       - SERVER_PORT=8083
-      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/bd_report?createDatabaseIfNotExist=true
+      - SPRING_DATASOURCE_URL=jdbc:mysql://172.31.70.67:3306/bd_report?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
       - SPRING_DATASOURCE_USERNAME=root
       - SPRING_DATASOURCE_PASSWORD=
-      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:29092
-    depends_on:
-      mysql:
-        condition: service_healthy
-      kafka:
-        condition: service_healthy
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=172.31.77.176:9092
     networks:
-      - vidasalud-local-net
+      - vidasalud-apps-net
 
   ms-audit:
     build:
       context: ./ms-audit
       dockerfile: Dockerfile
     container_name: ms-audit
+    restart: always
     ports:
       - "8084:8084"
     environment:
       - SERVER_PORT=8084
-      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/bd_audit?createDatabaseIfNotExist=true
+      - SPRING_DATASOURCE_URL=jdbc:mysql://172.31.70.67:3306/bd_audit?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
       - SPRING_DATASOURCE_USERNAME=root
       - SPRING_DATASOURCE_PASSWORD=
-      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:29092
-    depends_on:
-      mysql:
-        condition: service_healthy
-      kafka:
-        condition: service_healthy
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=172.31.77.176:9092
     networks:
-      - vidasalud-local-net
+      - vidasalud-apps-net
