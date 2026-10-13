@@ -49,6 +49,15 @@ public class CatalogService {
 
         return medicalService;
     }
+    
+    @Transactional
+    public boolean deleteService(Long id) {
+    return serviceRepository.findById(id).map(service -> {
+        service.setIsActive(false);
+        serviceRepository.save(service);
+        return true;
+    }).orElse(false);
+}
 
     @Transactional
     public Long decreaseQuota(Long serviceId) {

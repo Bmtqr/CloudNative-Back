@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/catalog/admin")
+@RequestMapping("/api/admin/catalog")
 @RequiredArgsConstructor
 public class CatalogAdminController {
 

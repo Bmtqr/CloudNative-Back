@@ -23,6 +23,8 @@ public class SecurityConfig {
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/admin/**").hasRole("Admin") 
+                .requestMatchers(HttpMethod.DELETE,"/api/catalog/**").hasRole("Admin")
+                .requestMatchers(HttpMethod.DELETE,"/api/appointments/**").hasRole("Admin")
                 .requestMatchers(HttpMethod.GET,"/api/appointments/**").hasAnyRole("Admin","Recepcionista","Paciente")
                 .requestMatchers(HttpMethod.POST,"/api/appointments/**").hasAnyRole("Recepcionista","Paciente", "Admin")
                 .requestMatchers(HttpMethod.PUT,"/api/appointments/**").hasAnyRole("Admin","Recepcionista")

@@ -1,6 +1,7 @@
 package catalog.controller;
 
 import catalog.model.MedicalService;
+import catalog.repository.MedicalServiceRepository;
 import catalog.service.CatalogService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -13,6 +14,8 @@ import java.util.Map;
 @RequestMapping("/api/catalog/services")
 @RequiredArgsConstructor
 public class CatalogController {
+
+    private final MedicalServiceRepository medicalServiceRepository;
 
     private final CatalogService catalogService;
 
@@ -54,4 +57,14 @@ public class CatalogController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteService(@PathVariable Long id) {
+        if (!medicalServiceRepository.existsById(id)) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+        medicalServiceRepository.deleteById(id);
+        return ResponseEntity.noContent().build();
+    }
 }
+
