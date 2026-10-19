@@ -86,10 +86,11 @@ services:
       - "8083:8083"
     environment:
       - SERVER_PORT=8083
-      - SPRING_DATASOURCE_URL=jdbc:mysql://172.31.70.67:3306/bd_report?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+      - SPRING_DATASOURCE_HOST=host.docker.internal
+      - SPRING_DATASOURCE_PORT=3307
       - SPRING_DATASOURCE_USERNAME=root
       - SPRING_DATASOURCE_PASSWORD=
-      - SPRING_KAFKA_BOOTSTRAP_SERVERS=172.31.77.176:9092
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=host.docker.internal:9092
     networks:
       - vidasalud-apps-net
 
