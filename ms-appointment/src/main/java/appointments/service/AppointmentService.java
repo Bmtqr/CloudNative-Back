@@ -23,15 +23,18 @@ public class AppointmentService {
 
     private final AppointmentRepository repository;
     private final RabbitTemplate rabbitTemplate;
+    private final EventoProducer eventProducer;
     private final KafkaTemplate<Object, Object> kafkaTemplate;
     private final RestClient catalogClient;
 
     public AppointmentService(AppointmentRepository repository,
                               RabbitTemplate rabbitTemplate,
+                              EventoProducer eventProducer,
                               KafkaTemplate<Object, Object> kafkaTemplate,
                               @Value("${services.catalog.url:http://localhost:8082}") String catalogUrl) {
         this.repository = repository;
         this.rabbitTemplate = rabbitTemplate;
+        this.eventProducer = eventProducer;
         this.kafkaTemplate = kafkaTemplate;
         this.catalogClient = RestClient.builder().baseUrl(catalogUrl).build();
     }
@@ -91,6 +94,12 @@ public class AppointmentService {
             );
             rabbitTemplate.convertAndSend(MessagingConfig.EXCHANGE, MessagingConfig.ROUTING_KEY_EMAIL, emailPayload);
         }
+        if (newStatus == AppointmentStatus.EN_ESPERA) {
+            eventProducer.publish(saved, "ADMISSION_TICKET_REQUESTED");
+        } else if (newStatus == AppointmentStatus.EN_ATENCION) {
+            eventProducer.publish(saved, "CLINICAL_BOX_CALLED");
+        }
+
 
         // Se envía el evento hacia Kafka
         Map<String, Object> kafkaPayload = Map.of(
