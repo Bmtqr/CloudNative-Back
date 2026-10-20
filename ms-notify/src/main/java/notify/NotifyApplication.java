@@ -5,13 +5,13 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.hibernate.autoconfigure.HibernateJpaAutoConfiguration;
 import org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration;
 
-
-
-@SpringBootApplication
+@SpringBootApplication(exclude = {
+    DataSourceAutoConfiguration.class,
+    HibernateJpaAutoConfiguration.class
+})
 public class NotifyApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(NotifyApplication.class, args);
-	}
-
+    public static void main(String[] args) {
+        SpringApplication.run(NotifyApplication.class, args);
+    }
 }

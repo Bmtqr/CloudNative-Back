@@ -1,7 +1,9 @@
 package catalog.service;
 
+import catalog.model.Box;
 import catalog.model.MedicalService;
 import catalog.model.ServiceQuota;
+import catalog.repository.BoxRepository;
 import catalog.repository.MedicalServiceRepository;
 import catalog.repository.ServiceQuotaRepository;
 import lombok.RequiredArgsConstructor;
@@ -17,11 +19,13 @@ public class CatalogService {
 
     private final MedicalServiceRepository serviceRepository;
     private final ServiceQuotaRepository quotaRepository;
+    private final BoxRepository boxRepository;
 
     @Transactional(readOnly = true)
     public List<MedicalService> getAllServices() {
         return serviceRepository.findAll();
     }
+
     @Transactional
     public MedicalService createService(MedicalService medicalService) {
         medicalService.setIsActive(true);
@@ -39,12 +43,20 @@ public class CatalogService {
         }
 
         if (additionalQuotas != null) {
-            Optional<ServiceQuota> quotaOpt = quotaRepository.findByMedicalServiceId(id);
-            if (quotaOpt.isPresent()) {
-                ServiceQuota quota = quotaOpt.get();
-                quota.setAvailableQuotas(additionalQuotas);
-                quotaRepository.save(quota);
-            }
+            ServiceQuota quota = quotaRepository.findByMedicalServiceId(id)
+                    .orElseGet(() -> {
+                        ServiceQuota newQuota = new ServiceQuota();
+                        newQuota.setMedicalService(medicalService);
+                        
+                        // Asignar primer box disponible si existe en BD
+                        Optional<Box> defaultBox = boxRepository.findAll().stream().findFirst();
+                        defaultBox.ifPresent(newQuota::setBox);
+                        
+                        return newQuota;
+                    });
+
+            quota.setAvailableQuotas(additionalQuotas);
+            quotaRepository.save(quota);
         }
 
         return medicalService;
@@ -52,12 +64,12 @@ public class CatalogService {
     
     @Transactional
     public boolean deleteService(Long id) {
-    return serviceRepository.findById(id).map(service -> {
-        service.setIsActive(false);
-        serviceRepository.save(service);
-        return true;
-    }).orElse(false);
-}
+        return serviceRepository.findById(id).map(service -> {
+            service.setIsActive(false);
+            serviceRepository.save(service);
+            return true;
+        }).orElse(false);
+    }
 
     @Transactional
     public Long decreaseQuota(Long serviceId) {
@@ -71,6 +83,6 @@ public class CatalogService {
         quota.setAvailableQuotas(quota.getAvailableQuotas() - 1);
         quotaRepository.save(quota);
 
-        return (quota.getBox() != null) ? quota.getBox().getId() : null;
+        return (quota.getBox() != null) ? quota.getBox().getId() : 1L;
     }
 }

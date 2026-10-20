@@ -39,6 +39,8 @@ services:
       - SPRING_DATASOURCE_URL=jdbc:mysql://172.31.70.67:3306/bd_catalog?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
       - SPRING_DATASOURCE_USERNAME=root
       - SPRING_DATASOURCE_PASSWORD=
+      - SPRING_CLOUD_ZOOKEEPER_ENABLED=false
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=172.31.77.176:9092
     networks:
       - vidasalud-apps-net
 
