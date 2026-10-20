@@ -1,0 +1,33 @@
+# Salidas de compilación y empaquetado local
+target/
+*.jar
+*.war
+
+# Control de versiones
+.git/
+.gitignore
+
+# Entornos de desarrollo y editores (VS Code, IntelliJ, Eclipse)
+.vscode/
+.idea/
+*.iml
+.project
+.classpath
+.settings/
+
+# Archivos de entorno y logs
+*.log
+.env
+.env.*
+
+# Dockerfile y configuraciones auxiliares dentro del contexto
+Dockerfile
+docker-compose*.yml
+.dockerignore
+
+# Maven wrapper temporal si no se utiliza
+.mvn/wrapper/maven-wrapper.jar
+
+# Archivos del sistema operativo
+.DS_Store
+Thumbs.db

@@ -68,6 +68,8 @@ services:
       dockerfile: Dockerfile
     container_name: ms-notify
     restart: always
+    ports:
+      - "8085:8085"
     environment:
       - SERVER_PORT=8085
       - SPRING_RABBITMQ_HOST=172.31.64.175

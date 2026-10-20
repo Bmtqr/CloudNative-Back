@@ -23,15 +23,18 @@ public class AppointmentService {
 
     private final AppointmentRepository repository;
     private final RabbitTemplate rabbitTemplate;
+    private final EventoProducer eventProducer;
     private final KafkaTemplate<Object, Object> kafkaTemplate;
     private final RestClient catalogClient;
 
     public AppointmentService(AppointmentRepository repository,
                               RabbitTemplate rabbitTemplate,
+                              EventoProducer eventProducer,
                               KafkaTemplate<Object, Object> kafkaTemplate,
                               @Value("${services.catalog.url:http://localhost:8082}") String catalogUrl) {
         this.repository = repository;
         this.rabbitTemplate = rabbitTemplate;
+        this.eventProducer = eventProducer;
         this.kafkaTemplate = kafkaTemplate;
         this.catalogClient = RestClient.builder().baseUrl(catalogUrl).build();
     }
@@ -81,7 +84,7 @@ public class AppointmentService {
         appointment.setStatus(newStatus);
         Appointment saved = repository.save(appointment);
 
-        // Envía la notificación si se confirma la atención (RabbitMQ alineado al caso VidaSalud)
+        // Notificacion de email
         if (newStatus == AppointmentStatus.CONFIRMADA && saved.getPatientEmail() != null) {
             Map<String, Object> emailPayload = Map.of(
                 "to", saved.getPatientEmail(),
@@ -89,10 +92,27 @@ public class AppointmentService {
                 "centerId", (saved.getCenterId() != null) ? saved.getCenterId() : "",
                 "date", (saved.getAppointmentDate() != null) ? saved.getAppointmentDate().toString() : ""
             );
-            rabbitTemplate.convertAndSend(MessagingConfig.EXCHANGE, MessagingConfig.ROUTING_KEY_EMAIL, emailPayload);
+            rabbitTemplate.convertAndSend(MessagingConfig.EXCHANGE_DIRECT, MessagingConfig.ROUTING_KEY_EMAIL, emailPayload);
         }
 
-        // Se envía el evento hacia Kafka
+        // Ticket de admission y llamado a box
+        if (newStatus == AppointmentStatus.EN_ESPERA) {
+            eventProducer.publish(saved, "ADMISSION_TICKET_REQUESTED");
+        } else if (newStatus == AppointmentStatus.EN_ATENCION) {
+            eventProducer.publish(saved, "CLINICAL_BOX_CALLED");
+        } 
+        // PDF
+        else if (newStatus == AppointmentStatus.CERRADA) {
+            Map<String, Object> recordPayload = Map.of(
+                "appointmentId", saved.getId(),
+                "patientId", (saved.getPatientId() != null) ? saved.getPatientId() : "",
+                "status", newStatus.name(),
+                "timestamp", Instant.now().toString()
+            );
+            rabbitTemplate.convertAndSend(MessagingConfig.EXCHANGE_DIRECT, MessagingConfig.ROUTING_KEY_RECORD, recordPayload);
+        }
+
+        // Kafka
         Map<String, Object> kafkaPayload = Map.of(
             "eventId", UUID.randomUUID().toString(),
             "aggregateId", saved.getId().toString(),
@@ -104,21 +124,6 @@ public class AppointmentService {
         kafkaTemplate.send("appointments.events", saved.getId().toString(), kafkaPayload);
 
         return saved;
-    }
-
-    @Transactional
-    public Appointment updateAppointment(Long id, Appointment details) {
-        Appointment existing = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Atención no encontrada con ID: " + id));
-
-        if (details.getPatientId() != null) existing.setPatientId(details.getPatientId());
-        if (details.getPatientEmail() != null) existing.setPatientEmail(details.getPatientEmail());
-        if (details.getCenterId() != null) existing.setCenterId(details.getCenterId());
-        if (details.getServiceId() != null) existing.setServiceId(details.getServiceId());
-        if (details.getBoxId() != null) existing.setBoxId(details.getBoxId());
-        if (details.getAppointmentDate() != null) existing.setAppointmentDate(details.getAppointmentDate());
-        
-        return repository.save(existing);
     }
 
     @Transactional
